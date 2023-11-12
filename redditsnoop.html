@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RedditSnoop</title>
+  <style>
+    /* CSS Styling */
+    @import url('https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap');
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f1f1f1;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 50px;
+      color: #333;
+    }
+   
+     h6 {
+      text-align: center;
+      margin-top: 50px;
+      color: #333;
+    }
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    select {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #333;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+
+    #posts {
+      margin-top: 20px;
+    }
+
+    .post {
+      background-color: #fff;
+      padding: 20px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .post h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .post p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #777;
+    }
+
+    .post img {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+
+    .post video {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome To RedditSnoop :) </h1> 
+  <h6> a lite reddit viewer by Mr005K </h6>
+  <div class="form-container">
+    <label for="subreddit">Subreddit:</label>
+    <input type="text" id="subreddit" placeholder="Enter subreddit name">
+    <label for="sort">Sort By:</label>
+    <select id="sort">
+      <option value="top">Top</option>
+      <option value="hot">Hot</option>
+      <option value="new">New</option>
+      <option value="controversial">Controversial</option>
+    </select>
+    <label for="timeframe">Timeframe:</label>
+    <select id="timeframe">
+      <option value="hour">Past Hour</option>
+      <option value="day">Past 24 Hours</option>
+      <option value="month">Past Month</option>
+      <option value="year">Past Year</option>
+      <option value="all">All Time</option>
+    </select>
+    <button onclick="scrapePosts()">Scrape Posts</button>
+  </div>
+  <div id="posts"></div>
+
+  <script>
+    // JavaScript code for scraping and displaying posts
+    function scrapePosts() {
+      var subreddit = document.getElementById('subreddit').value;
+      var sort = document.getElementById('sort').value;
+      var timeframe = document.getElementById('timeframe').value;
+
+      // Construct the URL for scraping
+      var url = `https://www.reddit.com/r/${subreddit}/${sort}.json?t=${timeframe}`;
+
+      // Make a request to scrape the Reddit page
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          var posts = data.data.children;
+          
+          // Clear the previous posts
+          document.getElementById('posts').innerHTML = '';
+
+          // Display the posts
+          posts.forEach(post => {
+            var postData = post.data;
+            var postElement = document.createElement('div');
+            postElement.classList.add('post');
+            postElement.innerHTML = `
+              <h2>${postData.title}</h2>
+              <p>Upvotes: ${postData.ups}</p>
+              <p>Date: ${new Date(postData.created_utc * 1000)}</p>
+              <p>Author: ${postData.author}</p>
+              ${getPostImage(postData)}
+              ${getPostVideo(postData)}
+              <p>${postData.selftext}</p>
+            `;
+            document.getElementById('posts').appendChild(postElement);
+          });
+        });
+    }
+
+    // Function to get the image from the post data, if available
+    function getPostImage(postData) {
+      var image = postData.preview && postData.preview.images[0].source.url;
+      if (image) {
+        return `<img src="${image}" alt="Post Image">`;
+      }
+      return '';
+    }
+
+    // Function to get the video from the post data, if available
+    function getPostVideo(postData) {
+      var video = postData.media && postData.media.reddit_video.fallback_url;
+      if (video) {
+        return `<video controls><source src="${video}" type="video/mp4"></video>`;
+      }
+      return '';
+    }
+  </script>
+</body>
+
+</html>
